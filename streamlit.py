@@ -83,9 +83,9 @@ if uploaded_file:
         if x_axis and y_axis:
             fig, ax = plt.subplots(figsize=(10, 6))
 
-            # Set axis limits dynamically
-            x_min, x_max = df[x_axis].min() - 1, df[x_axis].max() + 1
-            y_min, y_max = df[y_axis].min() - 1, df[y_axis].max() + 1
+            # Set axis limits dynamically, but force them to start at 0
+            x_min, x_max = 0, df[x_axis].max() + 1  # X-axis starts at 0
+            y_min, y_max = 0, df[y_axis].max() + 1  # Y-axis starts at 0
             ax.set_xlim(x_min, x_max)
             ax.set_ylim(y_min, y_max)
 
@@ -153,4 +153,3 @@ if uploaded_file:
                 file_name=file_name,
                 mime="image/png"
             )
-
