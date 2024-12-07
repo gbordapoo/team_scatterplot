@@ -12,28 +12,35 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import streamlit as st
 import os
 from PIL import Image
+import unicodedata
 
 # App configuration
 st.set_page_config(page_title='Performance Field - Logos Scatter Plot',
                    page_icon="flag_chile",
                    layout='wide')
 
-# Resize all logos to a consistent size
+# Function to normalize text
+def normalize_text(text):
+    """
+    Normalize text to remove special characters and ensure consistent encoding.
+    """
+    return unicodedata.normalize('NFC', text).encode('ascii', 'ignore').decode('utf-8').lower()
+
+# Resize all logos to a consistent size and normalize filenames
 def resize_logos(logos_path, output_path, size=(50, 50)):
     """
     Resize all logos in the given directory to the specified size.
-    Args:
-        logos_path (str): Path to the folder containing the original logos.
-        output_path (str): Path to save the resized logos.
-        size (tuple): Desired dimensions (width, height) for the logos.
+    Normalize filenames to handle special characters.
     """
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
     for logo_file in os.listdir(logos_path):
         if logo_file.endswith(".png"):
+            # Normalize the filename
+            normalized_name = normalize_text(os.path.splitext(logo_file)[0])
             logo_path = os.path.join(logos_path, logo_file)
-            output_file = os.path.join(output_path, logo_file)
+            output_file = os.path.join(output_path, f"{normalized_name}.png")
 
             with Image.open(logo_path) as img:
                 resized_img = img.resize(size, Image.Resampling.LANCZOS)
@@ -42,10 +49,9 @@ def resize_logos(logos_path, output_path, size=(50, 50)):
 # Normalize logos
 resize_logos("./logos", "./normalized_logos", size=(50, 50))
 
-# Add spacing at the top of the sidebar to move the logo higher
-st.sidebar.markdown("#")  # Adds blank space
-st.sidebar.markdown("#")  # Adds another blank space
-st.sidebar.image("performancefield_logo.jpeg", width=150)
+# Add the app logo to the top of the sidebar
+logo_placeholder = st.sidebar.empty()
+logo_placeholder.image("performancefield_logo.jpeg", width=150)
 
 # File uploader for Excel data in the main area
 uploaded_file = st.file_uploader("Upload an Excel file", type=["xlsx"])
@@ -84,8 +90,14 @@ if uploaded_file:
             ax.set_ylim(y_min, y_max)
 
             def add_logo_marker(ax, x, y, team_name, logos_path="./normalized_logos", zoom=0.4):
-                """Add a logo as a marker on the scatter plot."""
-                logo_file = os.path.join(logos_path, f"{team_name}.png")
+                """
+                Add a logo as a marker on the scatter plot.
+                Normalize the team name to match the logo filename.
+                """
+                # Normalize the team name to handle special characters
+                normalized_team_name = normalize_text(team_name)
+                logo_file = os.path.join(logos_path, f"{normalized_team_name}.png")
+
                 if os.path.exists(logo_file):
                     img = plt.imread(logo_file)
                     imagebox = OffsetImage(img, zoom=zoom)
@@ -141,3 +153,4 @@ if uploaded_file:
                 file_name=file_name,
                 mime="image/png"
             )
+
