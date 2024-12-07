@@ -36,7 +36,7 @@ def resize_logos(logos_path, output_path, size=(50, 50)):
             output_file = os.path.join(output_path, logo_file)
 
             with Image.open(logo_path) as img:
-                resized_img = img.resize(size, Image.ANTIALIAS)
+                resized_img = img.resize(size, Image.Resampling.LANCZOS)
                 resized_img.save(output_file)
 
 # Normalize logos
